@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - mern-app
+
+  api:
+    image: jigs751/genshinappapi:1.0
+    restart: unless-stopped
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/Genshin
+      - ROOT:3000
+      - APP_NAME=api1
+
+    networks:
+      - mern-app 
+    depends_on:
+      - mongo
+    ports:
+      - "3000:3000"
+
+
+  frontend:
+    image: jigs751/genshinapp-frontend1:1.0 
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=http://localhost:3000
+
+  
+    networks:
+      - mern-app
+    ports:
+      - "80:80"
+
+volumes:
+  mongo_data:
+
+networks:
+  mern-app:
+    driver: bridge
