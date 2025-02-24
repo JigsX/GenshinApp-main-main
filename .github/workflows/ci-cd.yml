@@ -1,0 +1,74 @@
+name: CI/CD Pipeline with Docker Hub, Ansible & AWS EC2
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Setup Docker Buildx for advanced build features
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Log in to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # --- Build and Test the API Image ---
+      - name: Build API Docker Image
+        working-directory: ./backend
+        run: docker build -t jigs751/genshinappapi:1.0 .
+
+      - name: Run API Tests
+        working-directory: ./backend
+        run: docker run --rm jigs751/genshinappapi:1.0 npm test
+
+      # --- Build and Test the Frontend Image ---
+      - name: Build Frontend Docker Image
+        working-directory: ./frontend
+        run: docker build -t jigs751/genshinapp-frontend1:1.0 .
+
+      - name: Run Frontend Tests
+        working-directory: ./frontend
+        run: docker run --rm jigs751/genshinapp-frontend1:1.0 npm test
+
+      # --- Push Images to Docker Hub ---
+      - name: Push API Image
+        run: docker push jigs751/genshinappapi:1.0
+
+      - name: Push Frontend Image
+        run: docker push jigs751/genshinapp-frontend1:1.0
+
+  deploy-to-ec2:
+    runs-on: ubuntu-latest
+    needs: build-test-and-push
+    steps:
+      # Checkout repository (if needed)
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Use SSH action to trigger the Ansible playbook on EC2
+      - name: Deploy with Ansible on EC2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          # Ensure Ansible is installed on the EC2 host
+          script: |
+            cd ~/my-app
+            # Pull latest changes from your repo (if needed)
+            git pull
+            # Run the Ansible playbook
+            ansible-playbook ansible/playbook.yml
