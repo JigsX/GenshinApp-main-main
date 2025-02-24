@@ -71,4 +71,4 @@ jobs:
               git pull
             fi
             # Run the Ansible playbook
-            ansible-playbook playbook.yml
+            ansible-playbook ansible/playbook.yml
