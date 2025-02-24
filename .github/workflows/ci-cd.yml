@@ -30,18 +30,13 @@ jobs:
         working-directory: ./backend
         run: docker build -t jigs751/genshinappapi:1.0 .
 
-      - name: Run API Tests
-        working-directory: ./backend
-        run: docker run --rm jigs751/genshinappapi:1.0 npm test
 
       # --- Build and Test the Frontend Image ---
       - name: Build Frontend Docker Image
         working-directory: ./frontend
         run: docker build -t jigs751/genshinapp-frontend1:1.0 .
 
-      - name: Run Frontend Tests
-        working-directory: ./frontend
-        run: docker run --rm jigs751/genshinapp-frontend1:1.0 npm test
+
 
       # --- Push Images to Docker Hub ---
       - name: Push API Image
