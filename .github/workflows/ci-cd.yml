@@ -62,6 +62,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           # Ensure Ansible is installed on the EC2 host
           script: |
+            mkdir -p ~/my-app
             cd ~/my-app
             # Pull latest changes from your repo (if needed)
             git pull
